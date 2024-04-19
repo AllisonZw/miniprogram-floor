@@ -1,7 +1,3 @@
-// 创建 WxRequest 类
-// 通过类的方式来进行封装，会让代码更加具有复用性
-// 也可以方便添加新的属性和方法
-
 class WxRequest {
   // 定义实例属性，用来设置默认请求参数
   defaults = {
@@ -18,60 +14,52 @@ class WxRequest {
   }
 
   // 定义拦截器对象
-  // 需要包含请求拦截器以及响应拦截器，方便在请求之前以及响应以后时进行逻辑处理
   interceptors = {
     // 请求拦截器
-    // 在请求发送之前，对请求参数进行新增或者修改
     request: (config) => config,
 
     // 响应拦截器
-    // 在服务器响应数据以后，对服务器响应的数据进行逻辑处理
     response: (response) => response
   }
 
-  // 定义数组队列
-  // 初始值需要是一个空数组，用来存储请求队列、存储请求标识
+  // 定义数组队列，用来存储请求队列、存储请求标识
   queue = []
 
-  // 用于创建和初始化类的属性以及方法
-  // 在实例化时传入的参数，会被 constructor 形参进行接收
+  // constructor 用于创建和初始化类的属性以及方法
   constructor(params = {}) {
-    // 通过 Object.assign 方法合并请求参数
     // 注意：需要传入的参数，覆盖默认的参数，因此传入的参数需要放到最后
     this.defaults = Object.assign({}, this.defaults, params)
   }
 
-  // request 实例方法接收一个对象类型的参数
-  // 属性值和 wx.request 方法调用时传递的参数保持一致
+  /**
+   * @description request 实例方法发送网络请求，接收一个对象类型的参数
+   * @param {*} options 属性值和 wx.request() 方法调用时传递的参数保持一致
+   * @returns Promise
+   */
   request(options) {
     // 如果有新的请求，就清除上一次的定时器
     this.timerId && clearTimeout(this.timerId)
 
-    // 注意：需要先合并完整的请求地址 (baseURL + url)
-    // https://gmall-prod.atguigu.cn/mall-api/index/findBanner
+    // 合并完整的请求地址
     options.url = this.defaults.baseURL + options.url
 
-    // 合并请求参数
+    // 合并请求参数：调用实例方法时传入的覆盖默认的以及实例配置的
     options = { ...this.defaults, ...options }
 
-    // 在请求发送之前，添加 loading 效果
-    // wx.showLoading()
-
+    // 控制 loading 的显示与隐藏
     if (options.isLoading && options.method !== 'UPLOAD') {
-      // 判断 queue 队列是否为空，如果是空，就显示 loading
-      // 如果不是空，就不显示 loading，不调用 wx.showLoading()
-      this.queue.length === 0 && wx.showLoading()
-
-      // 然后立即向 queue 数组队列中添加请求标识
-      // 每个标识代表是一个请求，标识是自定义的
+      // this.queue.length === 0 && wx.showLoading()
       this.queue.push('request')
     }
 
     // 在请求发送之前，调用请求拦截器，新增和修改请求参数
+    // 请求拦截器内部，会将新增和修改以后的参数返回
     options = this.interceptors.request(options)
 
     // 需要使用 Promise 封装 wx.request，处理异步请求
     return new Promise((resolve, reject) => {
+      // 如果 method 等于 UPLOAD 说明需要调用 wx.uploadFile() 方法
+      // 否则调用的是 wx.request() 方法
       if (options.method === 'UPLOAD') {
         wx.uploadFile({
           ...options,
@@ -105,18 +93,8 @@ class WxRequest {
 
           // 当接口调用成功时会触发 success 回调函数
           success: (res) => {
-            // 不管是成功响应还是失败响应，都需要调用响应拦截器
-            // 响应拦截器需要接收服务器响应的数据，然后对数据进行逻辑处理，处理好以后进行返回
-            // 然后在通过 resolve 将返回的数据抛出去
-
-            // 在给响应拦截器传递参数时，需要将请求参数也一起传递
-            // 方便进行代码的调试或者进行其他逻辑处理，需要先合并参数
-            // 然后将合并的参数传递给响应拦截器
-
-            // 不管是请求失败还是请求成功，都已经将响应的数据传递给了响应拦截器
-            // 这时候在合并参数的时候，追加一个属性：isSuccess
-            // 如果属性值为 true，说明执行了 success 回调函数
-            // 如果属性值为 false，说明执行了 fail 回调函数
+            // 合并请求参数，方便进行代码调试
+            // 追加 isSuccess 属性，是为了标识响应拦截器是 success 调用还是 fail 调用
             const mergeRes = Object.assign({}, res, {
               config: options,
               isSuccess: true
@@ -126,7 +104,8 @@ class WxRequest {
 
           // 当接口调用失败时会触发 fail 回调函数
           fail: (err) => {
-            // 不管是成功响应还是失败响应，都需要调用响应拦截器
+            // 合并请求参数，方便进行代码调试
+            // 追加 isSuccess 属性，是为了标识响应拦截器是 success 调用还是 fail 调用
             const mergeErr = Object.assign({}, err, {
               config: options,
               isSuccess: false
@@ -136,26 +115,23 @@ class WxRequest {
 
           // 接口调用结束的回调函数（调用成功、失败都会执行）
           complete: () => {
+            // 如果需要显示 loading ，那么就需要控制 loading 的隐藏
             if (options.isLoading) {
               // 在每一个请求结束以后，都会执行 complete 回调函数
               // 每次从 queue 队列中删除一个标识
               this.queue.pop()
 
+              // 解决并发请求，loading 闪烁问题
               this.queue.length === 0 && this.queue.push('request')
 
+              //解决并发请求，loading 闪烁问题
               this.timerId = setTimeout(() => {
                 this.queue.pop()
 
-                // 在删除标识以后，需要判断目前 queue 数组是否为空
-                // 如果是空，说明并发请求完成了
-                // 就需要隐藏 loading，要调用 wx.hideLoading()
                 this.queue.length === 0 && wx.hideLoading()
 
                 clearTimeout(this.timerId)
               }, 1)
-
-              // 不管请求时成功还是失败，都需要隐藏 loading
-              // wx.hideLoading()
             }
           }
         })
@@ -163,34 +139,59 @@ class WxRequest {
     })
   }
 
-  // 封装 GET 实例方法
+  /**
+   * @description 封装 GET 实例方法
+   * @param {*} url 请求地址
+   * @param {*} data 请求参数
+   * @param {*} config 其他请求配置项
+   * @returns Promise
+   */
   get(url, data = {}, config = {}) {
     // 需要调用 request 请求方法发送请求，只需要组织好参数，传递给 request 请求方法即可
     // 当调用 get 方法时，需要将 request 方法的返回值 return 出去
     return this.request(Object.assign({ url, data, method: 'GET' }, config))
   }
 
-  // 封装 DELETE 实例方法
+  /**
+   * @description 封装 DELETE 实例方法
+   * @param {*} url 请求地址
+   * @param {*} data 请求参数
+   * @param {*} config 其他请求配置项
+   * @returns Promise
+   */
   delete(url, data = {}, config = {}) {
     return this.request(Object.assign({ url, data, method: 'DELETE' }, config))
   }
 
-  // 封装 POST 实例方法
+  /**
+   * @description 封装 POST 实例方法
+   * @param {*} url 请求地址
+   * @param {*} data 请求参数
+   * @param {*} config 其他请求配置项
+   * @returns Promise
+   */
   post(url, data = {}, config = {}) {
     return this.request(Object.assign({ url, data, method: 'POST' }, config))
   }
 
-  // 封装 PUT 实例方法
+  /**
+   * @description 封封装 PUT 实例方法
+   * @param {*} url 请求地址
+   * @param {*} data 请求参数
+   * @param {*} config 其他请求配置项
+   * @returns Promise
+   */
   put(url, data = {}, config = {}) {
     return this.request(Object.assign({ url, data, method: 'PUT' }, config))
   }
 
-  // 用来处理并发请求
+  /**
+   * @description 处理并发请求
+   * @param  {...promise} promise 传入的每一项需要是 Promise
+   * @returns Promise
+   */
   all(...promise) {
-    // 通过展开运算符接收传递的参数
     // 那么展开运算符会将传入的参数转成数组
-    // console.log(promise)
-
     return Promise.all(promise)
   }
 

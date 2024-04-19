@@ -3,5 +3,6 @@
   "projectname": "%E8%8A%B1%E5%9D%8A",
   "setting": {
     "compileHotReLoad": true
-  }
+  },
+  "condition": {}
 }
