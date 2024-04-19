@@ -104,8 +104,14 @@ class WxRequest {
 
 // 对 WxRequest 进行实例化
 const instance = new WxRequest({
-  baseURL: 'https://gmall-prod.atguigu.cn/mall-api', // 请求基准地址
-  timeout: 10000 // 微信小程序 timeout 默认值为 60000
+  baseURL: 'https://gmall-prod.atguigu.cn/mall-api'
+})
+
+// 设置请求拦截器
+instance.setRequestInterceptor((config) => {
+  console.log('执行请求拦截器')
+
+  return config
 })
 
 // 设置响应拦截器
