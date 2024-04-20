@@ -1,5 +1,5 @@
 // 导入封装的 网络请求模块实例
-import http from '../utils/http.js'
+import http from '../utils/http'
 
 export const reqIndexData = () => {
   // 通过并发请求获取首页的数据，提升页面的渲染速度

@@ -8,6 +8,8 @@
   },
   "miniprogramRoot": "miniprogram/",
   "setting": {
+    "ignoreDevUnusedFiles": false,
+    "ignoreUploadUnusedFiles": false,
     "packNpmManually": true,
     "packNpmRelationList": [
       {

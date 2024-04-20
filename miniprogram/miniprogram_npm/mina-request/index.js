@@ -48,7 +48,7 @@ class WxRequest {
 
     // 控制 loading 的显示与隐藏
     if (options.isLoading && options.method !== 'UPLOAD') {
-      // this.queue.length === 0 && wx.showLoading()
+      this.queue.length === 0 && wx.showLoading()
       this.queue.push('request')
     }
 
@@ -203,7 +203,9 @@ class WxRequest {
    * @param {*} config 其他配置项
    */
   upload(url, filePath, name = 'file', config = {}) {
-    return this.request(Object.assign({ url, filePath, name, method: 'UPLOAD' }, config))
+    return this.request(
+      Object.assign({ url, filePath, name, method: 'UPLOAD' }, config)
+    )
   }
 }
 
