@@ -41,5 +41,5 @@ export const reqUpdateAddress = (data) => {
  * @returns Promise
  */
 export const reqDelAddress = (id) => {
-  return instance.get(`/userAddress/delete/${id}`)
+  return http.get(`/userAddress/delete/${id}`)
 }
