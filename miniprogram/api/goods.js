@@ -5,7 +5,7 @@ import http from '../utils/http'
  * @return Promise
  */
 export const reqGoodsList = ({ limit, page, ...reset }) => {
-  return http.get(`/mall-api/goods/list/${page}/${limit}`, reset)
+  return http.get(`/goods/list/${page}/${limit}`, reset)
 }
 
 /**
@@ -14,5 +14,5 @@ export const reqGoodsList = ({ limit, page, ...reset }) => {
  * @returns Promise
  */
 export const reqGoodsInfo = (goodsId) => {
-  return http.get(`/mall-api/goods/${goodsId}`)
+  return http.get(`/goods/${goodsId}`)
 }

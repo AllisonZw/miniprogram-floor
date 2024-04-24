@@ -1,6 +1,6 @@
 // pages/address/list/index.js
-import { reqAddressList, reqDelAddress } from '../../../../../api/address'
-import { swipeCellBehavior } from '../../../../../behaviors/swipeCell'
+import { reqAddressList, reqDelAddress } from '@/api/address'
+import { swipeCellBehavior } from '@/behaviors/swipeCell'
 
 Page({
   behaviors: [swipeCellBehavior],
