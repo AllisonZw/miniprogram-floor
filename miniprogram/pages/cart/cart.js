@@ -1,12 +1,16 @@
 import { userStore } from '@/stores/userstore'
 import { ComponentWithStore } from 'mobx-miniprogram-bindings'
-import { reqCartList, reqUpdateChecked, reqCheckAllStatus, reqAddCart } from '@/api/cart'
+import { reqCartList, reqUpdateChecked, reqCheckAllStatus, reqAddCart, reqDelCartGoods } from '@/api/cart'
+// 从 miniprogram-licia 导入防抖函数
+import { debounce } from 'miniprogram-licia'
+// 导入让删除滑块自动弹回的 behavior
+import { swipeCellBehavior } from '@/behaviors/swipeCell'
 const computedBehavior = require('miniprogram-computed').behavior
 
 // pages/cart/component/cart.js
 ComponentWithStore({
   // 注册behaviors
-  behaviors: [computedBehavior],
+  behaviors: [computedBehavior, swipeCellBehavior],
 
   // 让页面与Store对象建立关联
   storeBindings: {
@@ -20,6 +24,19 @@ ComponentWithStore({
     selectAllStatus(data) {
       // 不能使用this来访问data中的数据
       return data.cartList.length !== 0 && data.cartList.every((item) => item.isChecked === 1)
+    },
+    // 计算商品价格总和
+    totalPrice(data) {
+      let totalPrice = 0
+
+      data.cartList.forEach((item) => {
+        // 如果商品的 isChecked 属性等于，说明该商品被选中的
+        if (item.isChecked === 1) {
+          totalPrice += item.count * item.price
+        }
+      })
+
+      return totalPrice
     }
   },
 
@@ -32,7 +49,7 @@ ComponentWithStore({
   // 组件的方法列表
   methods: {
     // 修改数量
-    async changeBuyNum(event) {
+    changeBuyNum: debounce(async function (event) {
       // 获取最新的购买数量，
       // 如果用户输入的值大于 200，购买数量需要重置为 200
       // 如果不大于 200，直接返回用户输入的值
@@ -61,7 +78,7 @@ ComponentWithStore({
           [`cartList[${index}].isChecked`]: 1
         })
       }
-    },
+    }, 500),
 
     // 实现全选
     async changeAllStatus(e) {
@@ -119,6 +136,28 @@ ComponentWithStore({
           emptyDes: cartList === 0 && '还没有添加商品，快去添加吧～'
         })
       }
+    },
+
+    // 删除购物车中的商品
+    async delCartGoods(event) {
+      // 获取需要删除商品的 id
+      const { id } = event.currentTarget.dataset
+
+      // 询问用户是否删除该商品
+      const modalRes = await wx.modal({
+        content: '您确认删除该商品吗 ?'
+      })
+
+      if (modalRes) {
+        await reqDelCartGoods(id)
+
+        this.showTipList()
+      }
+    },
+
+    onHide() {
+      // 在页面隐藏的时候，需要让删除滑块自动弹回
+      this.onSwipeCellCommonClick()
     },
 
     onShow() {
