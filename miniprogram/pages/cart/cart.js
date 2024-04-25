@@ -1,13 +1,26 @@
 import { userStore } from '@/stores/userstore'
 import { ComponentWithStore } from 'mobx-miniprogram-bindings'
-import { reqCartList, reqUpdateChecked } from '@/api/cart'
+import { reqCartList, reqUpdateChecked, reqCheckAllStatus, reqAddCart } from '@/api/cart'
+const computedBehavior = require('miniprogram-computed').behavior
 
 // pages/cart/component/cart.js
 ComponentWithStore({
+  // 注册behaviors
+  behaviors: [computedBehavior],
+
   // 让页面与Store对象建立关联
   storeBindings: {
     store: userStore,
     fields: ['token']
+  },
+
+  // 定义计算属性
+  computed: {
+    // 是否全选
+    selectAllStatus(data) {
+      // 不能使用this来访问data中的数据
+      return data.cartList.length !== 0 && data.cartList.every((item) => item.isChecked === 1)
+    }
   },
 
   // 组件的初始数据
@@ -18,6 +31,53 @@ ComponentWithStore({
 
   // 组件的方法列表
   methods: {
+    // 修改数量
+    async changeBuyNum(event) {
+      // 获取最新的购买数量，
+      // 如果用户输入的值大于 200，购买数量需要重置为 200
+      // 如果不大于 200，直接返回用户输入的值
+      let newBuyNum = event.detail > 200 ? 200 : event.detail
+      // 获取商品的 ID 和 索引
+      const { id: goodsId, index, oldbuynum } = event.target.dataset
+      // 验证用户输入的值，是否是 1 ~ 200 直接的正整数
+      const reg = /^([1-9]|[1-9]\d|1\d{2}|200)$/
+      // 对用户输入的值进行验证
+      const regRes = reg.test(newBuyNum)
+      // 如果验证没有通过，需要重置为之前的购买数量
+      if (!regRes) {
+        this.setData({
+          [`cartList[${index}].count`]: oldbuynum
+        })
+        return
+      }
+      const disCount = newBuyNum - oldbuynum
+      if (disCount === 0) return
+      const res = await reqAddCart({ goodsId, count: disCount })
+
+      // 服务器更新购买数量成功以后，更新本地的数据
+      if (res.code === 200) {
+        this.setData({
+          [`cartList[${index}].count`]: newBuyNum,
+          [`cartList[${index}].isChecked`]: 1
+        })
+      }
+    },
+
+    // 实现全选
+    async changeAllStatus(e) {
+      const { detail } = e
+      const isChecked = detail ? 1 : 0
+      const res = await reqCheckAllStatus(isChecked)
+      if (res.code === 200) {
+        // this.showTipList()
+        const newCartList = JSON.parse(JSON.stringify(this.data.cartList))
+        newCartList.forEach((item) => (item.isChecked = isChecked))
+        this.setData({
+          cartList: newCartList
+        })
+      }
+    },
+
     // 切换商品的选中状态
     async updateChecked(event) {
       // 获取最新的选中状态
@@ -60,6 +120,7 @@ ComponentWithStore({
         })
       }
     },
+
     onShow() {
       this.showTipList()
     }

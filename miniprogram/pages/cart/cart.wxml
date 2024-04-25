@@ -19,7 +19,16 @@
                   <view class="num">{{item.price}}</view>
                 </view>
                 <view class="buy-btn">
-                  <van-stepper value="{{ item.count }}" />
+                  <van-stepper
+                    min="1"
+                    max="200"
+                    integer
+                    value="{{ item.count }}"
+                    data-id="{{ item.goodsId }}"
+                    data-oldbuynum="{{ item.count }}"
+                    data-index="{{index}}"
+                    bindchange="changeBuyNum"
+                  />
                 </view>
               </view>
             </view>
@@ -43,6 +52,6 @@
 
   <!-- 底部工具栏 -->
   <van-submit-bar wx:if="{{ cartList.length }}" price="{{ 3050 }}" button-text="去结算" tip="{{ true }}">
-    <van-checkbox value="{{ true }}" checked-color="#FA4126"> 全选 </van-checkbox>
+    <van-checkbox value="{{ selectAllStatus }}" checked-color="#FA4126" bind:change="changeAllStatus"> 全选 </van-checkbox>
   </van-submit-bar>
 </view>
