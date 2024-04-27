@@ -48,6 +48,18 @@ ComponentWithStore({
 
   // 组件的方法列表
   methods: {
+    toOrder() {
+      if (this.data.totalPrice === 0) {
+        wx.toast({
+          title: '请选择需要购买的商品'
+        })
+        return
+      }
+      // 跳转到订单的结算页面
+      wx.navigateTo({
+        url: '/modules/orderPayModule/pages/order/detail/detail'
+      })
+    },
     // 修改数量
     changeBuyNum: debounce(async function (event) {
       // 获取最新的购买数量，
