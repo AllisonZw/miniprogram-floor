@@ -1,5 +1,8 @@
 import './utils/extendApi'
 App({
+  globalData: {
+    address: {}
+  },
   onShow() {
     // 获取当前小程序的账号信息
     const accountInfo = wx.getAccountInfoSync()
