@@ -1,4 +1,4 @@
-import { reqGoodsList } from '@/api/goods'
+import { reqGoodsList } from '../../../api/goods'
 Page({
   // 页面的初始数据
   data: {
@@ -68,5 +68,11 @@ Page({
     Object.assign(this.data.requestData, options)
     // 获取商品列表的数据
     this.getGoodsList()
-  }
+  },
+
+  // 转发功能，转发给好友、群聊
+  onShareAppMessage() {},
+
+  // 能够把小程序分享到朋友圈
+  onShareTimeline() {}
 })

@@ -1,7 +1,8 @@
-import { reqOrderAddress, reqOrderInfo, reqBuyNowGoods, reqSubmitOrder, reqPreBuyInfo } from '@/api/orderpay'
+import { reqOrderAddress, reqOrderInfo, reqBuyNowGoods, reqSubmitOrder, reqPreBuyInfo } from '../../../api/orderpay'
 // 导入 async-validator 对参数进行验证
 import Schema from 'async-validator'
-import { formatTime } from '@/utils/formatTime.js'
+import { formatTime } from '../../../utils/formatTime.js'
+import { debounce } from 'miniprogram-licia'
 const app = getApp()
 
 Page({
@@ -16,7 +17,7 @@ Page({
     minDate: new Date().getTime()
   },
 
-  async submitOrder() {
+  submitOrder: debounce(async function () {
     // 从 data 中结构数据
     const { buyName, buyPhone, deliveryDate, blessing, orderInfo, orderAddress } = this.data
 
@@ -47,7 +48,7 @@ Page({
       this.orderNo = res.data
       this.advancePay()
     }
-  },
+  }, 500),
 
   // 获取预付单信息、支付参数
   async advancePay() {

@@ -1,8 +1,8 @@
 // pages/profile/profile.js
 import { userBehavior } from './behavior'
-import { getStorage, setStorage } from '../../../../utils/storage'
-import { reqUploadFile, reqUpdateUserInfo } from '../../../../api/user'
-import { toast } from '../../../../utils/extendApi'
+import { getStorage, setStorage } from '@/utils/storage'
+import { reqUploadFile, reqUpdateUserInfo } from '@/api/user'
+import { toast } from '@/utils/extendApi'
 Page({
   // 注册userBehavior
   behaviors: [userBehavior],

@@ -4,6 +4,7 @@ import { setStorage } from '../../utils/storage'
 import { userStore } from '../../stores/userstore'
 import { reqLogin, reqUserInfo } from '../../api/user'
 import { ComponentWithStore } from 'mobx-miniprogram-bindings'
+import { debounce } from 'miniprogram-licia'
 ComponentWithStore({
   storeBindings: {
     store: userStore,
@@ -11,7 +12,7 @@ ComponentWithStore({
     actions: ['setToken', 'setUserInfo']
   },
   methods: {
-    login() {
+    login: debounce(function () {
       wx.login({
         success: ({ code }) => {
           if (code) {
@@ -29,7 +30,7 @@ ComponentWithStore({
           }
         }
       })
-    },
+    }, 500),
 
     // 获取用户信息
     async getUserInfo() {

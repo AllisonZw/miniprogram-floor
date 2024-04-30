@@ -1,6 +1,6 @@
-import { reqGoodsInfo } from '@/api/goods'
+import { reqGoodsInfo } from '../../../api/goods'
 import { reqAddCart, reqCartList } from '@/api/cart'
-import { userBehavior } from '@/behaviors/userBehavior'
+import { userBehavior } from '../../../behaviors/userBehavior'
 Page({
   behaviors: [userBehavior],
   // 页面的初始数据
@@ -115,5 +115,17 @@ Page({
     this.getGoodsInfo()
     // 计算购买数量
     this.getCartCount()
-  }
+  },
+
+  // 转发功能，转发给好友、群聊
+  onShareAppMessage() {
+    return {
+      title: '所有的怦然心动，都是你',
+      path: '/pages/index/index',
+      imageUrl: '../../../../../assets/images/love.jpg'
+    }
+  },
+
+  // 能够把小程序分享到朋友圈
+  onShareTimeline() {}
 })
